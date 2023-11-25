@@ -8,6 +8,7 @@ const env = cleanEnv(process.env, {
   DBPASSWORD: str(),
   DATABASE_NAME: str(),
   DATABASE_USERNAME: str(),
+  REDIS_URL: str(),
 });
 
 export default env;

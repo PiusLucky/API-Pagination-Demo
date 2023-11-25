@@ -6,16 +6,38 @@ import { BlogPostModel, syncAllModels } from "./src/models";
 import { extractQueryParams } from "./src/utils/blog";
 import { PaginateResponse } from "./src/interfaces/blog";
 import BlogPost from "./src/models/post";
+import env from "./env";
+import { ExpressAdapter } from "@bull-board/express";
+import { createBullBoard } from "@bull-board/api";
+import { BullAdapter } from "@bull-board/api/bullAdapter";
+import { blogService } from "./src/services";
 
 dotenv.config();
+
+// Specify all queues here
+export const queues = [blogService.queue()];
+
+export const QUEUE_LIST = [
+  ...queues?.map((queue) => {
+    return new BullAdapter(queue);
+  }),
+];
 
 (async () => {
   // Sync all models
   await syncAllModels();
 })();
 
+const serverAdapter = new ExpressAdapter();
+serverAdapter.setBasePath("/admin/queues");
+
+createBullBoard({
+  queues: QUEUE_LIST,
+  serverAdapter,
+});
+
 const app: Express = express();
-const port = process.env.PORT;
+const port = env.PORT;
 
 const corsOptions = {
   origin: "*", // WHITELISTED DOMAINS - ["test1.com", "test2.com"]
@@ -26,7 +48,7 @@ app.use(cors(corsOptions));
 
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: false }));
-
+app.use("/admin/queues", serverAdapter.getRouter());
 // Ideally these can be in separate files & proper validations in place (in case of posts etc.)
 app.get("/", (_req: Request, res: Response) => {
   res.send("Express + TypeScript Server");
@@ -88,6 +110,18 @@ app.post("/post", async (req: Request, res: Response) => {
   res.status(201).json(newPost);
 });
 
+app.post("/post-queue", async (req: Request, res: Response) => {
+  blogService.addBulkBlogPosts(req.body);
+  res.status(201).json({
+    status: 201,
+    message: "Post added to queue successfully",
+  });
+});
+
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+  console.info(
+    `For the Redis Queue UI, open http://localhost:${port}/admin/queues`
+  );
+  console.info(`Make sure Redis is running on port 6379 by default`);
 });
