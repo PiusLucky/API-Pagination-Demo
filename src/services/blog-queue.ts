@@ -16,18 +16,18 @@ export class BlogQueueService {
     return this.blogQueue;
   }
 
-  addBulkBlogPosts(data: BlogPost) {
+  addBlogPost(data: BlogPost) {
     this.blogQueue.add(data, {
       attempts: this.retries,
     });
   }
 
   async initiateProcessor(job: Job) {
-    const postPayload = job.data;
-    await this.processBulkPostCreation(postPayload);
+    const postPayload = job.data; 
+    await this.processBlogPostCreation(postPayload);
   }
 
-  async processBulkPostCreation(postPayload: Partial<BlogPost>): Promise<void> {
+  async processBlogPostCreation(postPayload: Partial<BlogPost>): Promise<void> {
     await BlogPost.create(postPayload);
   }
 }

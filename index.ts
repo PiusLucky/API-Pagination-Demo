@@ -111,7 +111,7 @@ app.post("/post", async (req: Request, res: Response) => {
 });
 
 app.post("/post-queue", async (req: Request, res: Response) => {
-  blogService.addBulkBlogPosts(req.body);
+  blogService.addBlogPost(req.body);
   res.status(201).json({
     status: 201,
     message: "Post added to queue successfully",
