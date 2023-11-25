@@ -1,22 +1,25 @@
 {
-  "name": "API-Pagination",
+  "name": "nodes-api",
   "version": "1.0.0",
-  "description": "A demo app for api pagination",
+  "description": "A demo app for nodejs api",
   "main": "index.ts",
   "author": "Pius Lucky",
   "license": "MIT",
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/index.js",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\""
+    "watch": "npx tsc --watch",
+    "dev": "nodemon -q dist/index.js"
   },
   "dependencies": {
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "envalid": "^8.0.0",
     "express": "^4.18.2",
     "pg": "^8.11.3",
-    "sequelize": "^6.35.0"
+    "sequelize": "^6.35.0",
+    "ts-node": "^10.9.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.16",
