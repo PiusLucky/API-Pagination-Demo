@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { BlogPostModel, syncAllModels } from "./src/models";
-import { extractQueryParams } from "./src/utils/blog";
+import { blogPostGenerator, extractQueryParams } from "./src/utils/blog";
 import { PaginateResponse } from "./src/interfaces/blog";
 import BlogPost from "./src/models/post";
 import env from "./env";
@@ -11,6 +11,7 @@ import { ExpressAdapter } from "@bull-board/express";
 import { createBullBoard } from "@bull-board/api";
 import { BullAdapter } from "@bull-board/api/bullAdapter";
 import { blogService } from "./src/services";
+import { CronService } from "./src/services/cron";
 
 dotenv.config();
 
@@ -115,6 +116,29 @@ app.post("/post-queue", async (req: Request, res: Response) => {
   res.status(201).json({
     status: 201,
     message: "Post added to queue successfully",
+  });
+});
+
+//Setup cron service
+const blogCron = new CronService();
+
+app.post("/run-blog-cron", async (_req: Request, res: Response) => {
+  const customFunction = async () => {
+    const generatedPost = blogPostGenerator();
+    await BlogPostModel.create(generatedPost);
+  };
+  blogCron.runTaskEveryMinute(customFunction);
+  res.status(200).json({
+    status: 200,
+    message: "Cron initiated successfully",
+  });
+});
+
+app.put("/stop-blog-cron", async (_req: Request, res: Response) => {
+  const stopCron = blogCron.stopEveryMinuteTask();
+  res.status(stopCron.status).json({
+    status: stopCron.status,
+    message: stopCron.message,
   });
 });
 
